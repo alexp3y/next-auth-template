@@ -1,6 +1,8 @@
 'use client';
 import cn from 'classnames';
 import React, { useEffect, useState } from 'react';
+import SignUpForm from './EntryModal/SignUpForm';
+import LoginForm from './EntryModal/LoginForm';
 
 interface Props {
   isOpen: boolean;
@@ -42,12 +44,12 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
       onClick={handleClickAway}
     >
       <dialog
-        className="flex max-w-md w-[90%] h-4/5 flex-col rounded-lg bg-moonstone dark:bg-charcoal shadow-xl"
+        className="flex max-w-md w-[90%] h-5/6 flex-col rounded-lg bg-moonstone dark:bg-charcoal shadow-xl"
         open={isOpen}
       >
-        <div className="flex h-[56px] w-full">
+        <div className="flex w-full">
           <button
-            className={cn('w-1/2 rounded-tl-lg', {
+            className={cn('w-1/2 h-[56px] rounded-tl-md', {
               'bg-blue text-black': signUpForm,
             })}
             onClick={() => setSignUpForm(false)}
@@ -55,7 +57,7 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
             Log In
           </button>
           <button
-            className={cn('w-1/2 rounded-tr-lg', {
+            className={cn('w-1/2 h-[56px] rounded-tr-md', {
               'bg-blue text-black': !signUpForm,
             })}
             onClick={() => setSignUpForm(true)}
@@ -75,9 +77,12 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
           </button>
         </div>
         {signUpForm ? (
-          <div className="">SIGN UP</div>
+          <SignUpForm moveToLogin={() => setSignUpForm(false)} />
         ) : (
-          <div className="">LOG IN</div>
+          <LoginForm
+            moveToSignUp={() => setSignUpForm(true)}
+            onLoginSuccess={() => close()}
+          />
         )}
       </dialog>
     </div>
