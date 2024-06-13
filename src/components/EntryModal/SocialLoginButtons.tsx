@@ -1,31 +1,38 @@
-import { auth, googleAuthProvider } from '@/lib/firebase';
 import cn from 'classnames';
-import { signInWithPopup } from 'firebase/auth';
 import Image from 'next/image';
 import React from 'react';
+import { useAuth } from '../AuthProvider';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 interface Props {
-  loading: boolean;
+  setError: (msg: string) => void;
+  closeDialog: () => void;
 }
 
-const SocialLoginButtons: React.FC<Props> = ({ loading }) => {
-  const loginWithGoogle = async () => {
-    const cred = await signInWithPopup(auth, googleAuthProvider);
-    console.log(`User Created via Social Lnk: ` + cred);
+const SocialLoginButtons: React.FC<Props> = ({ setError, closeDialog }) => {
+  const auth = useAuth();
+
+  const handleLoginWithGoogle = async () => {
+    try {
+      const user = await auth.logInWithGoogle();
+      closeDialog();
+    } catch (err: any) {
+      console.error(err);
+      setError('Unable to Authenticate');
+    }
   };
 
   return (
     <div className="flex w-full flex-col gap-4">
       <button
-        disabled={loading}
+        disabled={auth.loading}
         className={cn(
-          'flex h-14 items-center justify-center gap-3 rounded-md border border-secondary-dark-20 p-3 text-center',
+          'flex h-14 items-center justify-center gap-3 rounded-md border p-3 text-center',
           {
-            'hover:bg-secondary hover:bg-opacity-70 active:bg-opacity-100':
-              !loading,
+            'hover:bg-opacity-70 active:bg-opacity-100': !auth.loading,
           }
         )}
-        onClick={loginWithGoogle}
+        onClick={handleLoginWithGoogle}
       >
         <Image
           src={'/images/google.png'}
@@ -33,7 +40,11 @@ const SocialLoginButtons: React.FC<Props> = ({ loading }) => {
           height={30}
           alt="Google Logo"
         />
-        Continue with Google
+        {auth.loading ? (
+          <LoadingSpinner style="h-8 fill-platinum dark:fill-black dark:text-blue" />
+        ) : (
+          'Continue with Google'
+        )}
       </button>
     </div>
   );

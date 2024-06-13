@@ -20,6 +20,10 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
   };
 
   useEffect(() => {
+    setSignUpForm(false);
+  }, [isOpen]);
+
+  useEffect(() => {
     function handleKeydown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         close();
@@ -44,7 +48,7 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
       onClick={handleClickAway}
     >
       <dialog
-        className="flex max-w-md w-[90%] h-5/6 flex-col rounded-lg bg-moonstone dark:bg-charcoal shadow-xl"
+        className="flex max-w-md w-[90%] h-fit max-h-[90%] flex-col rounded-lg bg-moonstone dark:bg-charcoal shadow-xl"
         open={isOpen}
       >
         <div className="flex w-full">
@@ -77,11 +81,16 @@ const EntryModal: React.FC<Props> = ({ isOpen, signUp, close }) => {
           </button>
         </div>
         {signUpForm ? (
-          <SignUpForm moveToLogin={() => setSignUpForm(false)} />
+          <SignUpForm
+            isOpen={isOpen}
+            moveToLogin={() => setSignUpForm(false)}
+            closeDialog={() => close()}
+          />
         ) : (
           <LoginForm
+            isOpen={isOpen}
             moveToSignUp={() => setSignUpForm(true)}
-            onLoginSuccess={() => close()}
+            closeDialog={() => close()}
           />
         )}
       </dialog>

@@ -1,38 +1,43 @@
-import { auth } from '@/lib/firebase';
 import cn from 'classnames';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../AuthProvider';
 import { LoadingSpinner } from '../LoadingSpinner';
 import SocialLoginButtons from './SocialLoginButtons';
 
 interface Props {
+  isOpen: boolean;
   moveToSignUp: () => void;
-  onLoginSuccess: () => void;
+  closeDialog: () => void;
 }
 
-const LoginForm: React.FC<Props> = ({ moveToSignUp, onLoginSuccess }) => {
+const LoginForm: React.FC<Props> = ({ isOpen, moveToSignUp, closeDialog }) => {
+  const auth = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const submitPasswordLogin = async () => {
+  useEffect(() => {
+    setEmail('');
+    setPassword('');
+    setRememberMe(false);
+    setError('');
+  }, [isOpen]);
+
+  const handlePasswordLogin = async () => {
     try {
-      setLoading(true);
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      onLoginSuccess();
+      const user = await auth.logInWithPassword(email, password);
+      closeDialog();
     } catch (err: any) {
-      setError(err.message);
       console.error(err);
-    } finally {
-      setLoading(false);
+      setError('Authentication Failed');
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-5 p-6">
+    <div className="flex flex-col items-center gap-5 p-6 overflow-y-scroll">
       <span className="text-[48px] flex leading-none border-[3px] rounded-[3px] px-[6px] pb-[12px] pt-[3px] cursor-pointer shadow-sm mt-3 mb-5">
         p3y
       </span>
@@ -44,8 +49,8 @@ const LoginForm: React.FC<Props> = ({ moveToSignUp, onLoginSuccess }) => {
           setEmail(e.target.value);
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !loading) {
-            submitPasswordLogin();
+          if (e.key === 'Enter' && !auth.loading) {
+            handlePasswordLogin();
           }
         }}
         className="h-12 w-full rounded-sm border p-3 pl-5"
@@ -59,8 +64,8 @@ const LoginForm: React.FC<Props> = ({ moveToSignUp, onLoginSuccess }) => {
           setPassword(e.target.value);
         }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !loading) {
-            submitPasswordLogin();
+          if (e.key === 'Enter' && !auth.loading) {
+            handlePasswordLogin();
           }
         }}
         className="h-12 w-full rounded-sm border p-3 pl-5"
@@ -85,16 +90,15 @@ const LoginForm: React.FC<Props> = ({ moveToSignUp, onLoginSuccess }) => {
       </div>
       <button
         className={cn('h-12 w-full rounded-md text-center border')}
-        disabled={loading}
-        onClick={() => submitPasswordLogin()}
+        disabled={auth.loading}
+        onClick={() => handlePasswordLogin()}
       >
-        {loading ? (
+        {auth.loading ? (
           <LoadingSpinner style="h-8 fill-platinum dark:fill-black dark:text-blue" />
         ) : (
           'Log In'
         )}
       </button>
-      {error && <span className="text-sm text-[#e62c2c]">{error}</span>}
 
       <div className="flex w-full items-center justify-around">
         <hr className="w-full" />
@@ -102,7 +106,9 @@ const LoginForm: React.FC<Props> = ({ moveToSignUp, onLoginSuccess }) => {
         <hr className="w-full" />
       </div>
 
-      <SocialLoginButtons loading={loading} />
+      <SocialLoginButtons setError={setError} closeDialog={closeDialog} />
+
+      {error && <span className="text-sm text-[#e62c2c]">{error}</span>}
 
       <p className="py-2 text-sm">
         New here?{' '}

@@ -1,46 +1,49 @@
-import { auth } from '@/lib/firebase';
 import cn from 'classnames';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import React, { useState } from 'react';
-import SocialLoginButtons from './SocialLoginButtons';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../AuthProvider';
 import { LoadingSpinner } from '../LoadingSpinner';
+import SocialLoginButtons from './SocialLoginButtons';
 
 interface Props {
+  isOpen: boolean;
   moveToLogin: () => void;
+  closeDialog: () => void;
 }
 
-const SignUpForm: React.FC<Props> = ({ moveToLogin }) => {
+const SignUpForm: React.FC<Props> = ({ isOpen, moveToLogin, closeDialog }) => {
+  const auth = useAuth();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [termsAgree, setTermsAgree] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const submitPasswordSignUp = async () => {
-    try {
-      setLoading(true);
-      validateRequiredFields();
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      // const userDocRef = await doc(firestore, `users/${cred.user.uid}`);
-      // await setDoc(userDocRef, {
-      //   firstName,
-      //   lastName,
-      //   displayName: `${firstName} ${lastName}`.trim(),
-      //   theme: Theme.GMC_DEFAULT,
-      // });
-    } catch (err: any) {
-      setError(err.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setPassword('');
+    setTermsAgree(false);
+    setError('');
+  }, [isOpen]);
 
-  const validateRequiredFields = () => {
-    if (!firstName || !lastName || !email || !password || !termsAgree) {
-      throw new Error('Required field(s) missing');
+  const handlePasswordSignUp = async () => {
+    try {
+      const user = await auth.signUpWithPassowrd(
+        email,
+        password,
+        firstName,
+        lastName,
+        termsAgree
+      );
+      closeDialog();
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        'We hit a snag signing you up. Sorry about that! Try again or contact us for assistance.'
+      );
     }
   };
 
@@ -51,7 +54,7 @@ const SignUpForm: React.FC<Props> = ({ moveToLogin }) => {
           Create Your Free Account:
         </span>
 
-        <SocialLoginButtons loading={loading} />
+        <SocialLoginButtons setError={setError} closeDialog={closeDialog} />
 
         <div className="flex w-full items-center justify-around">
           <hr className="w-full" />
@@ -64,7 +67,7 @@ const SignUpForm: React.FC<Props> = ({ moveToLogin }) => {
         className="flex flex-col items-center gap-4 pt-5"
         onSubmit={(e) => {
           e.preventDefault();
-          submitPasswordSignUp();
+          handlePasswordSignUp();
         }}
       >
         <div className="flex w-full justify-around gap-4">
@@ -133,18 +136,18 @@ const SignUpForm: React.FC<Props> = ({ moveToLogin }) => {
         </div>
         <button
           className={cn('h-12 w-full rounded-md border text-center', {
-            'hover:bg-opacity-95': !loading,
+            'hover:bg-opacity-95': !auth.loading,
           })}
-          disabled={loading}
+          disabled={auth.loading}
         >
-          {loading ? (
+          {auth.loading ? (
             <LoadingSpinner style="h-8 fill-platinum dark:fill-black dark:text-blue" />
           ) : (
             'Sign Up'
           )}
         </button>
       </form>
-      <div className={cn('flex items-center justify-center')}>
+      <div className={cn('flex items-center justify-center text-center')}>
         {error && <span className="mt-4 text-sm text-[#e62c2c]">{error}</span>}
       </div>
       <p className="w-full pt-6 text-center text-sm">
