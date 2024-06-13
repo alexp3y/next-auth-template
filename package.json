@@ -5,6 +5,7 @@
     "email": "alexp3y@gmail.com",
     "url": "https://p3y.dev"
   },
+  "license": "MIT",
   "version": "0.1.0",
   "private": true,
   "scripts": {
